@@ -1,4 +1,5 @@
 //TODO: change buttons
+//TODO: add clock in menu on start, create show and settings mode
 
 #include <Arduino.h>
 
