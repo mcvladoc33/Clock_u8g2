@@ -1,4 +1,3 @@
-//TODO: change buttons
 //TODO: add clock in menu on start, create show and settings mode
 
 #include <Arduino.h>
@@ -15,15 +14,13 @@
 
 Bounce up = Bounce();
 Bounce down = Bounce();
-Bounce left = Bounce();
-Bounce right = Bounce();
+Bounce ex = Bounce();
 Bounce ok = Bounce();
 
 #define UP 2
 #define DOWN 3
-#define LEFT 4
-#define RIGHT 5
-#define OK 6
+#define EXIT 4
+#define OK 5
 
 #define ITEMS 6
 
@@ -63,10 +60,8 @@ void setup(void) {
   up.interval(5); // interval in ms
   down.attach( DOWN,  INPUT_PULLUP ); // USE INTERNAL PULL-UP
   down.interval(5); // interval in ms
-  left.attach( LEFT,  INPUT_PULLUP ); // USE INTERNAL PULL-UP
-  left.interval(5); // interval in ms
-  right.attach( RIGHT,  INPUT_PULLUP ); // USE INTERNAL PULL-UP
-  right.interval(5); // interval in ms
+  ex.attach( EXIT,  INPUT_PULLUP ); // USE INTERNAL PULL-UP
+  ex.interval(5); // interval in ms
   ok.attach( OK,  INPUT_PULLUP ); // USE INTERNAL PULL-UP
   ok.interval(5); // interval in ms
 
@@ -84,8 +79,7 @@ void loop(void) {
   static uint8_t pointer = 1;
   up.update();
   down.update();
-  left.update();
-  right.update();
+  ex.update();
   ok.update();
 
   if (up.fell()){
@@ -153,9 +147,10 @@ void printPointer(uint8_t ptr){
 void clock(){
 
   while (1){
+    up.update();
+    down.update();
+    ex.update();
     ok.update();
-    left.update();
-    right.update();
     u8g2.setFont(u8g2_font_timR24_tr);
 
     //Clock
@@ -190,18 +185,21 @@ void clock(){
 
     u8g2.sendBuffer();
 
-    if (left.fell()){
+    if (up.fell()){
       hour= hour + 1;
     }
 
-    if (right.fell()){
+    if (down.fell()){
       min= min + 1;
+    }
+
+    if (ex.fell()){
+      u8g2.setFont(u8g2_font_6x10_tf);
+      return;  // Exit from function by pressed OK button
     }
 
     if (ok.fell()){
       sec = 0;
-      u8g2.setFont(u8g2_font_6x10_tf);
-      return;  // Exit from function by pressed OK button
     }
   }
 }
@@ -231,8 +229,8 @@ void hello(){
       last_tick = cur_milllis;
     }
 
-    ok.update();
-    if (ok.fell()){
+    ex.update();
+    if (ex.fell()){
       return;
     }
   }
@@ -263,8 +261,8 @@ void new_year(){
       last_tick = cur_milllis;
     }
 
-    ok.update();
-    if (ok.fell()){
+    ex.update();
+    if (ex.fell()){
       return;
     }
   }
@@ -296,7 +294,7 @@ void drawSnowflakes() {
       last_tick = cur_milllis;
     }
 
-    ok.update();
+    ex.update();
     u8g2.clearBuffer();
     u8g2.setCursor(0, 0);
 
@@ -319,7 +317,7 @@ void drawSnowflakes() {
       }
     }
     u8g2.sendBuffer();
-      if (ok.fell()){
+      if (ex.fell()){
         return;
       }
   }
@@ -357,8 +355,8 @@ void thanks(){
       last_tick = cur_milllis;
     }
 
-    ok.update();
-    if (ok.fell()){
+    ex.update();
+    if (ex.fell()){
       return;
     }
   }
