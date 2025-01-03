@@ -19,7 +19,7 @@ Bounce ok = Bounce();
 
 #define UP 2
 #define DOWN 3
-#define EXIT 4
+#define EX 4
 #define OK 5
 
 #define ITEMS 6
@@ -60,7 +60,7 @@ void setup(void) {
   up.interval(5); // interval in ms
   down.attach( DOWN,  INPUT_PULLUP ); // USE INTERNAL PULL-UP
   down.interval(5); // interval in ms
-  ex.attach( EXIT,  INPUT_PULLUP ); // USE INTERNAL PULL-UP
+  ex.attach( EX,  INPUT_PULLUP ); // USE INTERNAL PULL-UP
   ex.interval(5); // interval in ms
   ok.attach( OK,  INPUT_PULLUP ); // USE INTERNAL PULL-UP
   ok.interval(5); // interval in ms
