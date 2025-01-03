@@ -1,4 +1,4 @@
-//TODO: add clock in menu on start, create show and settings mode
+//TODO: fix sleep mode
 
 #include <Arduino.h>
 
@@ -38,12 +38,16 @@ Snowflake snowflakes[SNOWFLAKES];
 U8G2_SSD1309_128X64_NONAME2_F_4W_HW_SPI u8g2(U8G2_R0, /* cs=*/ 10, /* dc=*/ 9, /* reset=*/ 8);
 
 void printPointer(uint8_t ptr);
-void clock();
+void clock_settings();
+void sleep();
 void hello();
 void new_year();
 void drawSnowflakes();
 void thanks();
 
+// Sleep
+unsigned long cur_sleep = 0;
+unsigned long last_sleep = 0;
 
 // Clock
 unsigned long cur_milllis = 0;
@@ -92,7 +96,7 @@ void loop(void) {
 
   if (ok.fell()){
     switch (pointer){
-      case 1: clock(); break;
+      case 1: clock_settings(); break;
       case 2: hello(); break;
       case 3: new_year(); break;
       case 4: drawSnowflakes(); break;
@@ -100,10 +104,18 @@ void loop(void) {
       case 6: break;
     }
   }
+
+  //Sleep
+  cur_sleep = millis();
+  if(cur_sleep - last_sleep >= 20000){
+    sleep();
+    last_sleep = cur_sleep;
+  }
+
   // picture loop  
   u8g2.clearBuffer();
   u8g2.setCursor(0, 10);
-  u8g2.print(F(" 1. Clock \n"));
+  u8g2.print(F(" 1. Clock settings \n"));
   u8g2.setCursor(0, 20);
   u8g2.print(F(" 2. Hello, world! \n"));
   u8g2.setCursor(0, 30);
@@ -144,7 +156,7 @@ void printPointer(uint8_t ptr){
 }
 
 
-void clock(){
+void clock_settings(){
 
   while (1){
     up.update();
@@ -195,10 +207,11 @@ void clock(){
 
     if (ex.fell()){
       u8g2.setFont(u8g2_font_6x10_tf);
-      return;  // Exit from function by pressed OK button
+      return;  // Exit from function by pressed EX button
     }
 
     if (ok.fell()){
+      last_sleep = cur_sleep;
       sec = 0;
     }
   }
@@ -231,7 +244,8 @@ void hello(){
 
     ex.update();
     if (ex.fell()){
-      return;
+      last_sleep = cur_sleep;
+      return; // Exit from function by pressed EX button
     }
   }
 }
@@ -263,6 +277,7 @@ void new_year(){
 
     ex.update();
     if (ex.fell()){
+      last_sleep = cur_sleep;
       return;
     }
   }
@@ -318,7 +333,8 @@ void drawSnowflakes() {
     }
     u8g2.sendBuffer();
       if (ex.fell()){
-        return;
+        last_sleep = cur_sleep;
+        return; // Exit from function by pressed EX button
       }
   }
 }
@@ -357,7 +373,74 @@ void thanks(){
 
     ex.update();
     if (ex.fell()){
-      return;
+      last_sleep = cur_sleep;
+      return; // Exit from function by pressed EX button
+    }
+  }
+}
+
+void sleep(){
+  while (1){
+    up.update();
+    down.update();
+    ex.update();
+    ok.update();
+    u8g2.setFont(u8g2_font_timR24_tr);
+
+    //Clock
+    cur_milllis = millis();
+    if(cur_milllis - last_tick >= 1000){
+      sec = sec + 1;
+      if(sec >= 60){
+        min = min +1;
+        sec = 0;
+      }
+      if(min >= 60){
+        hour = hour +1;
+        min = 0;
+      }
+      if(hour >= 24){
+        hour = 0;
+      }
+      last_tick = cur_milllis;
+    }
+
+    // Update display
+    u8g2.clearBuffer();
+    u8g2.setCursor(7, 40);
+    //u8g2.print(F("Time: "));
+    
+    // Output in format HH:MM:SS
+    u8g2.print(hour < 10 ? "0" : ""); u8g2.print(hour);
+    u8g2.print(F(":"));
+    u8g2.print(min < 10 ? "0" : ""); u8g2.print(min);
+    u8g2.print(F(":"));
+    u8g2.print(sec < 10 ? "0" : ""); u8g2.print(sec);
+
+    u8g2.sendBuffer();
+
+    if (up.fell()){
+      u8g2.setFont(u8g2_font_6x10_tf);
+      last_sleep = cur_sleep;
+      return;  // Exit from function by pressed UP button
+    }
+
+    if (down.fell()){
+      u8g2.setFont(u8g2_font_6x10_tf);
+      last_sleep = cur_sleep;
+      return;  // Exit from function by pressed DOWN button
+    }
+
+    if (ex.fell()){
+      u8g2.setFont(u8g2_font_6x10_tf);
+      last_sleep = cur_sleep;
+      return;  // Exit from function by pressed EX button
+    }
+
+    if (ok.fell()){
+      u8g2.setFont(u8g2_font_6x10_tf);
+      last_sleep = cur_sleep;
+      return;  // Exit from function by pressed OK button
     }
   }
 }
