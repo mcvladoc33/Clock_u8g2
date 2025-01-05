@@ -1,5 +1,3 @@
-//TODO: fix sleep mode
-
 #include <Arduino.h>
 
 #include <U8g2lib.h>
@@ -24,7 +22,9 @@ Bounce ok = Bounce();
 
 #define ITEMS 6
 
-#define SNOWFLAKES 10
+#define SLEEP 10000
+
+#define SNOWFLAKES 30
 
 struct Snowflake {
   int x, y;
@@ -44,6 +44,9 @@ void hello();
 void new_year();
 void drawSnowflakes();
 void thanks();
+
+void clock_tick();
+// void sleep2();
 
 // Sleep
 unsigned long cur_sleep = 0;
@@ -88,10 +91,12 @@ void loop(void) {
 
   if (up.fell()){
     pointer = constrain (pointer - 1, 1, ITEMS);
+    last_sleep = millis();  // Reset the sleep timer
   }
 
   if (down.fell()){
     pointer = constrain (pointer + 1, 1, ITEMS);
+    last_sleep = millis();  // Reset the sleep timer
   }
 
   if (ok.fell()){
@@ -103,13 +108,20 @@ void loop(void) {
       case 5: thanks(); break;
       case 6: break;
     }
+    // Reset sleep timer after returning from a function
+    last_sleep = millis();  // Reset the sleep timer
   }
 
-  //Sleep
+  // Reset the sleep timer when any button is pressed
+  if (up.fell() || down.fell() || ex.fell() || ok.fell()) {
+    last_sleep = millis();  // Reset the sleep timer
+  }
+
+  // Sleep check: Only enter sleep mode if x seconds have passed with no button press
   cur_sleep = millis();
-  if(cur_sleep - last_sleep >= 20000){
+  if (cur_sleep - last_sleep >= SLEEP) {
     sleep();
-    last_sleep = cur_sleep;
+    last_sleep = millis();  // Reset the sleep timer
   }
 
   // picture loop  
@@ -129,7 +141,17 @@ void loop(void) {
   printPointer (pointer);
   u8g2.sendBuffer();
 
-  //Clock
+  clock_tick();
+
+}
+
+void printPointer(uint8_t ptr){
+  u8g2.setCursor(0, ptr * 10);
+  u8g2.print(">");
+}
+
+void clock_tick(){
+    //Clock
   cur_milllis = millis();
   if(cur_milllis - last_tick >= 1000){
     sec = sec + 1;
@@ -146,42 +168,18 @@ void loop(void) {
     }
     last_tick = cur_milllis;
   }
-
-
 }
-
-void printPointer(uint8_t ptr){
-  u8g2.setCursor(0, ptr * 10);
-  u8g2.print(">");
-}
-
 
 void clock_settings(){
 
   while (1){
+    clock_tick();
+
     up.update();
     down.update();
     ex.update();
     ok.update();
     u8g2.setFont(u8g2_font_timR24_tr);
-
-    //Clock
-    cur_milllis = millis();
-    if(cur_milllis - last_tick >= 1000){
-      sec = sec + 1;
-      if(sec >= 60){
-        min = min +1;
-        sec = 0;
-      }
-      if(min >= 60){
-        hour = hour +1;
-        min = 0;
-      }
-      if(hour >= 24){
-        hour = 0;
-      }
-      last_tick = cur_milllis;
-    }
 
     // Update display
     u8g2.clearBuffer();
@@ -211,7 +209,6 @@ void clock_settings(){
     }
 
     if (ok.fell()){
-      last_sleep = cur_sleep;
       sec = 0;
     }
   }
@@ -223,28 +220,10 @@ void hello(){
   u8g2.print(F("Hello, world! \n"));
   u8g2.sendBuffer();
   while (1){
-
-    //Clock
-    cur_milllis = millis();
-    if(cur_milllis - last_tick >= 1000){
-      sec = sec + 1;
-      if(sec >= 60){
-        min = min +1;
-        sec = 0;
-      }
-      if(min >= 60){
-        hour = hour +1;
-        min = 0;
-      }
-      if(hour >= 24){
-        hour = 0;
-      }
-      last_tick = cur_milllis;
-    }
+    clock_tick();
 
     ex.update();
     if (ex.fell()){
-      last_sleep = cur_sleep;
       return; // Exit from function by pressed EX button
     }
   }
@@ -256,28 +235,10 @@ void new_year(){
   u8g2.print(F("Happy New Year!!! \n"));
   u8g2.sendBuffer();
   while (1){
-
-    //Clock
-    cur_milllis = millis();
-    if(cur_milllis - last_tick >= 1000){
-      sec = sec + 1;
-      if(sec >= 60){
-        min = min +1;
-        sec = 0;
-      }
-      if(min >= 60){
-        hour = hour +1;
-        min = 0;
-      }
-      if(hour >= 24){
-        hour = 0;
-      }
-      last_tick = cur_milllis;
-    }
+    clock_tick();
 
     ex.update();
     if (ex.fell()){
-      last_sleep = cur_sleep;
       return;
     }
   }
@@ -290,24 +251,7 @@ void drawSnowflakes() {
     snowflakes[i].y = random(0, 64);
   }
   while (1){
-    
-    //Clock
-    cur_milllis = millis();
-    if(cur_milllis - last_tick >= 1000){
-      sec = sec + 1;
-      if(sec >= 60){
-        min = min +1;
-        sec = 0;
-      }
-      if(min >= 60){
-        hour = hour +1;
-        min = 0;
-      }
-      if(hour >= 24){
-        hour = 0;
-      }
-      last_tick = cur_milllis;
-    }
+    clock_tick();
 
     ex.update();
     u8g2.clearBuffer();
@@ -333,7 +277,6 @@ void drawSnowflakes() {
     }
     u8g2.sendBuffer();
       if (ex.fell()){
-        last_sleep = cur_sleep;
         return; // Exit from function by pressed EX button
       }
   }
@@ -352,28 +295,10 @@ void thanks(){
   u8g2.print(F("Happy New Year!!! \n"));
   u8g2.sendBuffer();
   while (1){
-
-    //Clock
-    cur_milllis = millis();
-    if(cur_milllis - last_tick >= 1000){
-      sec = sec + 1;
-      if(sec >= 60){
-        min = min +1;
-        sec = 0;
-      }
-      if(min >= 60){
-        hour = hour +1;
-        min = 0;
-      }
-      if(hour >= 24){
-        hour = 0;
-      }
-      last_tick = cur_milllis;
-    }
+    clock_tick();
 
     ex.update();
     if (ex.fell()){
-      last_sleep = cur_sleep;
       return; // Exit from function by pressed EX button
     }
   }
@@ -381,29 +306,13 @@ void thanks(){
 
 void sleep(){
   while (1){
+    clock_tick();
+
     up.update();
     down.update();
     ex.update();
     ok.update();
     u8g2.setFont(u8g2_font_timR24_tr);
-
-    //Clock
-    cur_milllis = millis();
-    if(cur_milllis - last_tick >= 1000){
-      sec = sec + 1;
-      if(sec >= 60){
-        min = min +1;
-        sec = 0;
-      }
-      if(min >= 60){
-        hour = hour +1;
-        min = 0;
-      }
-      if(hour >= 24){
-        hour = 0;
-      }
-      last_tick = cur_milllis;
-    }
 
     // Update display
     u8g2.clearBuffer();
@@ -419,28 +328,12 @@ void sleep(){
 
     u8g2.sendBuffer();
 
-    if (up.fell()){
-      u8g2.setFont(u8g2_font_6x10_tf);
-      last_sleep = cur_sleep;
-      return;  // Exit from function by pressed UP button
+    // If any button is pressed, wake up from sleep
+    if (up.fell() || down.fell() || ex.fell() || ok.fell()) {
+      u8g2.setFont(u8g2_font_6x10_tf);  // Set the font
+      last_sleep = millis();  // Reset the sleep timer
+      return;  // Exit sleep mode
     }
 
-    if (down.fell()){
-      u8g2.setFont(u8g2_font_6x10_tf);
-      last_sleep = cur_sleep;
-      return;  // Exit from function by pressed DOWN button
-    }
-
-    if (ex.fell()){
-      u8g2.setFont(u8g2_font_6x10_tf);
-      last_sleep = cur_sleep;
-      return;  // Exit from function by pressed EX button
-    }
-
-    if (ok.fell()){
-      u8g2.setFont(u8g2_font_6x10_tf);
-      last_sleep = cur_sleep;
-      return;  // Exit from function by pressed OK button
-    }
   }
 }
