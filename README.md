@@ -7,7 +7,7 @@
 ![photo_5449809012221668955_y](https://github.com/user-attachments/assets/e6068d7c-b105-48e9-9833-fdf5cb1bf81b)
 
 ### Симуляція у wokwi
-
+Посилання на проект: https://wokwi.com/projects/419456946279552001
 
 ![Screenshot 2025-01-07 234253](https://github.com/user-attachments/assets/c74f2952-24c6-435b-a5f0-c92a6fa40729)
 ![Screenshot 2025-01-07 234556](https://github.com/user-attachments/assets/da71d950-3f31-4e5a-a9cc-f27fae102bf6)
